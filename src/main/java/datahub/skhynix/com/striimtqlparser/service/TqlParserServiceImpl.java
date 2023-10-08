@@ -1,62 +1,71 @@
 package datahub.skhynix.com.striimtqlparser.service;
 
 import datahub.skhynix.com.striimtqlparser.catalog.entity.TqlAppEntity;
+import datahub.skhynix.com.striimtqlparser.common.AppProperties;
 import datahub.skhynix.com.striimtqlparser.dto.TqlFile;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class TqlParserServiceImpl <T> implements TqlParserService {
-    private String trailToJsonPattern;
-    private final T tqlParser;
+@Slf4j
+public class TqlParserServiceImpl implements TqlParserService {
+    private final AppProperties appProperties;
 
     @Override
-    public List<TqlAppEntity> parseTqlApps(String striimHostname) {
-        extractTqlTiles(striimHostname);
+    public void parseAndSaveTqlFiles(String striimHostname) {
+        extractTqlFiles(striimHostname);
         scpToTempTqlFiles(striimHostname);
+        File tempDir = new File(appProperties.getTempPath());
 
-        // 1. Trail To Json TQL Parsing
-        List<TqlFile> modifiedFiles = compareTqlFiles(trailToJsonPattern);
+        // 1. Trail To Json Parser
+        parseAndSaveTqlFiles(tempDir, new TrailToJsonParserImpl());
+    }
 
-        List<TqlAppEntity> tqlAppEntities = modifiedFiles.stream()
-                .map(file -> ((TrailToJsonParser)tqlParser).parseTqlFile(file))
+    private void parseAndSaveTqlFiles (File tempDir, TqlParser tqlParser) {
+        log.info("# {} is started", tqlParser.getClass().getName());
+        log.info("# tqlParser.filenamePattern is {}", tqlParser.getFilenamePattern());
+
+        File[] tempFiles = tempDir.listFiles(file -> file.getName().contains(tqlParser.getFilenamePattern()));
+        List<TqlFile> tqlFiles = compareTqlFiles(tempFiles); //modified tql files after the temp vs the all dir compare
+
+        List<TqlAppEntity> tqlAppEntities = tqlFiles.stream()
+                .map(tqlParser::parseTqlFile)
                 .collect(Collectors.toList());
         saveTqlApps(tqlAppEntities);
-        backupDefalutTqlFiles(trailToJsonPattern);
-        copyTofalutTqlFiles(trailToJsonPattern);
-        // --
-        
+        backupDefalutTqlFiles(tqlParser.getFilenamePattern());
+        copyToDefalutTqlFiles(tqlParser.getFilenamePattern());
+        log.info("# {} save {} apps", tqlParser.getClass().getName(), tqlAppEntities.size());
+    }
+
+    private List<TqlFile> compareTqlFiles(File[] files) {
+        log.info("# compareTqlFiles is finished");
         return new ArrayList<>();
     }
 
-    private void copyTofalutTqlFiles(String trailToJsonPattern) {
-    }
-
-    private void extractTqlTiles(String striimHostname) {
-
+    private void extractTqlFiles(String striimHostname) {
+        log.info("# extractTqlFiles is finished");
     }
 
     private void scpToTempTqlFiles(String striimHostname) {
-
-    }
-
-    private List<TqlFile> compareTqlFiles(String filenamePattern) {
-        return null;
+        log.info("# scpToTempTqlFiles is finished");
     }
 
     private void saveTqlApps(List<TqlAppEntity> tqlApps) {
+        log.info("# saveTqlApps is finished");
+    }
 
+    private void copyToDefalutTqlFiles(String filenamePattern) {
+        log.info("# copyToDefalutTqlFiles is finished");
     }
 
     private void backupDefalutTqlFiles(String filenamePattern) {
-
+        log.info("# backupDefalutTqlFiles is finished");
     }
 }

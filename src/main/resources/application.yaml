@@ -1,0 +1,6 @@
+app:
+  tql:
+    paths:
+      tempPath: tql/temp
+      defaultPath: tql/ALL
+      backupPath: tql/ALL_bak

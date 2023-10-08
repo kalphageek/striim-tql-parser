@@ -4,5 +4,6 @@ import lombok.Data;
 
 @Data
 public class TqlFile {
-    String filename;
+    String appName;
+    String tqlFile;
 }
