@@ -12,5 +12,5 @@ public interface TrailToJsonParser {
     public List<TqlFile> compareTqlFiles();
     public List<TqlAppEntity> parseTrailToJsonTqls(List<TqlFile> tqlFiles);
     public <T> void saveTqlApps(List<T> tqlApps);
-    public void backupDefalutTqlFile();
+    public void backupDefalutTqlFiles(String filenamePatter);
 }
