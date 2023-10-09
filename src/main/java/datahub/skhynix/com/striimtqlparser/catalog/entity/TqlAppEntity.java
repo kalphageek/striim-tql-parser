@@ -1,7 +1,19 @@
 package datahub.skhynix.com.striimtqlparser.catalog.entity;
 
 import lombok.Data;
+import lombok.Getter;
 
-@Data
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table
+@Getter
 public class TqlAppEntity {
+    @Id
+    String appName;
+    String hashValue;
+    String sourceType;
+    String destType;
 }

@@ -12,5 +12,4 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 public class AppProperties {
     private String tempPath;
     private String defaultPath;
-    private String backupPath;
 }
