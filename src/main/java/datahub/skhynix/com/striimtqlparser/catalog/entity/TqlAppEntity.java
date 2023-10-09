@@ -8,7 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table
+@Table(name = "CAT_CDCCOLL_INF")
 @Getter
 public class TqlAppEntity {
     @Id

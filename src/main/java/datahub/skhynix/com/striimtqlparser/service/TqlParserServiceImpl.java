@@ -37,20 +37,25 @@ public class TqlParserServiceImpl implements TqlParserService {
         parseAndSaveTqlFiles(tempDir, new TrailToJsonParserImpl());
     }
 
+    /**
+     * 1. Trail To Json Parser
+     * @param tempDir
+     * @param tqlParser
+     */
     private void parseAndSaveTqlFiles (File tempDir, TqlParser tqlParser) {
         log.info("# {} is started", tqlParser.getClass().getName());
         log.info("# tqlParser.filenamePattern is {}", tqlParser.getFilenamePattern());
-        // 1. TrailToJson 파일들 읽기
+        // 1. TrailToJson 파일 선택 및 읽기
         File[] tempFiles = tempDir.listFiles(file -> file.getName().contains(tqlParser.getFilenamePattern()));
-        // 2. 테이블에서 대상 데이터 읽기
+        // 2. 테이블에서 기존 데이터 읽기
         List<TqlAppEntity> currentTqlAppEntities = tqlAppRepository.findBySourceTypeAndDestType(tqlParser.getSourceType(), tqlParser.getDestType());
-        // 3. 파일과 데이터 비교해서 파싱대상 선별하기
+        // 3. 파일과 데이터 비교해서 파싱 대상 선별하기
         List<TqlFile> tqlFiles = compareTqlFiles(currentTqlAppEntities, tempFiles); //modified tql files after the temp vs the all dir compare
-        // 4. 선별한 파일 파싱하기
+        // 4. 선별한 파일 파싱해서 Entity 생성하기
         List<TqlAppEntity> tqlAppEntities = tqlFiles.stream()
                 .map(tqlParser::parseTqlFile)
                 .collect(Collectors.toList());
-        // 5. 파싱한 파일 저장하기
+        // 5. Entity 저장하기
         saveTqlApps(tqlAppEntities);
         // 6. 완료된 파일 default dir로 옮기
         copyToDefalutTqlFiles(tqlParser.getFilenamePattern());
@@ -106,7 +111,7 @@ public class TqlParserServiceImpl implements TqlParserService {
         try {
             md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e.toString());
+            throw new RuntimeException("# TqlParserServiceImpl > getFileHash [" + file.getName() + "]" + e.toString());
         }
 
         try (InputStream is = new FileInputStream(file)) {
@@ -116,7 +121,7 @@ public class TqlParserServiceImpl implements TqlParserService {
                 md.update(buffer, 0, bytesRead);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e.toString());
+            throw new RuntimeException("# TqlParserServiceImpl > getFileHash [" + file.getName() + "]" + e.toString());
         }
         byte[] hashBytes = md.digest();
 
@@ -129,8 +134,13 @@ public class TqlParserServiceImpl implements TqlParserService {
     }
 
     // 문자열의 SHA-256 해시 값을 계산하는 메서드
-    private String getStringHash(String input) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
+    private String getStringHash(String input) {
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("# TqlParserServiceImpl > getStringHash [" + input + "]" + e.toString());
+        }
         byte[] hashBytes = md.digest(input.getBytes(StandardCharsets.UTF_8));
 
         // 바이트 배열을 16진수 문자열로 변환
